@@ -15,6 +15,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:3000",
+                   "http://localhost:3000/",
                    "https://back-la-boticade-campero.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
