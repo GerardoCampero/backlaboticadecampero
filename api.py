@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Depends, Request, Response, HTTPException, APIRouter, Query
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from config.database import engine, iniciar_db, borrar_db
 from models.models import *
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime
 
 app = FastAPI(
     title='La Botica de Campero',
@@ -128,6 +129,7 @@ def consultar_lote(id: int, session: Session=Depends(get_session)):
 
 
 
+
 @crud.get('/buscar_lotes', response_model=List[Lotes])
 def buscar_lotes(
     fecha: str = Query(...),  # Fecha en formato "dd/mm/yyyy"
@@ -141,11 +143,11 @@ def buscar_lotes(
     except ValueError:
         raise HTTPException(status_code=400, detail="El formato de la fecha es incorrecto. Use 'dd/mm/yyyy'.")
 
-    # Realizamos la consulta usando LIKE para comparar solo la fecha
-    query = select(Lotes).where(Lotes.usuario_id == usuario_id)
-
-    # Para bases de datos como PostgreSQL, puedes usar la función 'DATE' para comparar solo la fecha.
-    query = query.where(Lotes.fecha.like(f"%{fecha_str}%"))
+    # Realizamos la consulta usando la función 'DATE' para comparar solo la fecha
+    query = select(Lotes).where(
+        Lotes.usuario_id == usuario_id,
+        func.date(Lotes.fecha) == fecha_str  # Utilizamos func.date() para comparar solo la fecha
+    )
 
     # Ejecutamos la consulta
     lotes = session.exec(query).all()
@@ -154,6 +156,35 @@ def buscar_lotes(
         raise HTTPException(status_code=404, detail="No se encontraron lotes para el usuario y la fecha proporcionados.")
 
     return lotes
+
+
+
+# @crud.get('/buscar_lotes', response_model=List[Lotes])
+# def buscar_lotes(
+#     fecha: str = Query(...),  # Fecha en formato "dd/mm/yyyy"
+#     usuario_id: int = Query(...),  # ID de usuario
+#     session: Session = Depends(get_session)
+# ):
+#     # Convertir la fecha de "dd/mm/yyyy" a "yyyy-mm-dd"
+#     try:
+#         fecha_obj = datetime.strptime(fecha, "%d/%m/%Y")
+#         fecha_str = fecha_obj.strftime("%Y-%m-%d")  # Convertimos la fecha al formato "yyyy-mm-dd"
+#     except ValueError:
+#         raise HTTPException(status_code=400, detail="El formato de la fecha es incorrecto. Use 'dd/mm/yyyy'.")
+
+#     # Realizamos la consulta usando LIKE para comparar solo la fecha
+#     query = select(Lotes).where(Lotes.usuario_id == usuario_id)
+
+#     # Para bases de datos como PostgreSQL, puedes usar la función 'DATE' para comparar solo la fecha.
+#     query = query.where(Lotes.fecha.like(f"%{fecha_str}%"))
+
+#     # Ejecutamos la consulta
+#     lotes = session.exec(query).all()
+
+#     if not lotes:
+#         raise HTTPException(status_code=404, detail="No se encontraron lotes para el usuario y la fecha proporcionados.")
+
+#     return lotes
 
 
 @crud.put('/editar_usuario/{id}', response_model=ConsultaUsuario)
