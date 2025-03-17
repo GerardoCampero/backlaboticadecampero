@@ -31,6 +31,12 @@ def get_session():
     with Session(engine) as session:
         yield session
 
+
+
+@app.get("/")
+async def read_root():
+    return {"message": "Hello, world!"}
+
 @crud.post('/crear_usuario')
 def crear_usuario(usuario: CrearUsuario, session: Session= Depends(get_session)):
 
