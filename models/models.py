@@ -9,6 +9,7 @@ class Usuario(SQLModel, table=True):
     apellido: Optional[str] = None
     facebook: Optional[str] = None
     instagram: Optional[str] = None
+    telefono: Optional[int] = None
     admin: Optional[bool] = None
     compras: List['Lotes'] = Relationship(back_populates='usuario')
 
@@ -33,6 +34,7 @@ class CrearUsuario(SQLModel):
     apellido: Optional[str] = None
     facebook: Optional[str] = None
     instagram: Optional[str] = None
+    telefono: Optional[int] = None
     admin: Optional[bool] = None
 
 class CrearLote(SQLModel):
@@ -51,6 +53,7 @@ class ConsultaUsuario(SQLModel):
     apellido: Optional[str] = None
     facebook: Optional[str] = None
     instagram: Optional[str] = None
+    telefono: Optional[int] = None
     admin: bool
     compras: List[Lotes] = None
 

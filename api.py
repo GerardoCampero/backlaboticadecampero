@@ -48,6 +48,7 @@ def crear_usuario(usuario: CrearUsuario, session: Session= Depends(get_session))
         apellido=usuario.apellido,
         facebook=usuario.facebook,
         instagram=usuario.instagram,
+        telefono=usuario.telefono,
         admin=usuario.admin
     )
 
@@ -97,14 +98,22 @@ def buscar_usuario(
 
 
 @crud.post('/crear_lote')
-def crear_lote(lote: CrearLote, session: Session=Depends(get_session)):
+def crear_lote(lote: CrearLote, session: Session = Depends(get_session)):
+    # Verificar si el usuario existe en la base de datos
+    usuario_existente = session.exec(select(Usuario).where(Usuario.id == lote.usuario_id)).first()
+
+    # Si el usuario no existe, lanzar una excepción
+    if not usuario_existente:
+        raise HTTPException(status_code=404, detail="El usuario con el ID proporcionado no existe")
+
+    # Si el usuario existe, crear el lote
     nuevoLote = Lotes(
         usuario_id=lote.usuario_id,
         lote=lote.lote,
         descripcion=lote.descripcion,
         cantidad=lote.cantidad,
         precio=lote.precio,
-        total= lote.precio*lote.cantidad
+        total=lote.precio * lote.cantidad
     )
 
     session.add(nuevoLote)
@@ -130,10 +139,11 @@ def consultar_lote(id: int, session: Session=Depends(get_session)):
 
 
 
+
 @crud.get('/buscar_lotes', response_model=List[Lotes])
 def buscar_lotes(
     fecha: str = Query(...),  # Fecha en formato "dd/mm/yyyy"
-    usuario_id: int = Query(...),  # ID de usuario
+    usuario_id: Optional[int] = Query(None),  # ID de usuario es opcional
     session: Session = Depends(get_session)
 ):
     # Convertir la fecha de "dd/mm/yyyy" a "yyyy-mm-dd"
@@ -143,19 +153,21 @@ def buscar_lotes(
     except ValueError:
         raise HTTPException(status_code=400, detail="El formato de la fecha es incorrecto. Use 'dd/mm/yyyy'.")
 
-    # Realizamos la consulta usando la función 'DATE' para comparar solo la fecha
-    query = select(Lotes).where(
-        Lotes.usuario_id == usuario_id,
-        func.date(Lotes.fecha) == fecha_str  # Utilizamos func.date() para comparar solo la fecha
-    )
+    # Construimos la consulta base
+    query = select(Lotes).where(func.date(Lotes.fecha) == fecha_str)  # Usamos func.date para comparar solo la fecha
+
+    # Si el usuario_id es proporcionado, agregamos la condición del usuario
+    if usuario_id is not None:
+        query = query.where(Lotes.usuario_id == usuario_id)
 
     # Ejecutamos la consulta
     lotes = session.exec(query).all()
 
     if not lotes:
-        raise HTTPException(status_code=404, detail="No se encontraron lotes para el usuario y la fecha proporcionados.")
+        raise HTTPException(status_code=404, detail="No se encontraron lotes para la fecha proporcionada.")
 
     return lotes
+
 
 
 
