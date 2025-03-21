@@ -3,14 +3,14 @@ from typing import Optional, List
 from datetime import datetime
 
 class Usuario(SQLModel, table=True):
-
+    
     id: Optional[int] = Field(default=None, primary_key=True)
-    nombre: Optional[str] = None
-    apellido: Optional[str] = None
-    facebook: Optional[str] = None
-    instagram: Optional[str] = None
-    telefono: Optional[int] = None
-    admin: Optional[bool] = None
+    nombre: Optional[str] = Field(default=None, nullable=True)
+    apellido: Optional[str] = Field(default=None, nullable=True)
+    facebook: Optional[str] = Field(default=None, nullable=True)
+    instagram: Optional[str] = Field(default=None, nullable=True)
+    telefono: Optional[int] = Field(default=None, nullable=True)
+    admin: Optional[bool] = Field(default=None, nullable=True)
     compras: List['Lotes'] = Relationship(back_populates='usuario')
 
     
