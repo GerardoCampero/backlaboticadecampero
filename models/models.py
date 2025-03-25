@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime
+from pydantic import BaseModel
 
 class Usuario(SQLModel, table=True):
     
@@ -37,14 +38,28 @@ class CrearUsuario(SQLModel):
     telefono: Optional[int] = None
     admin: Optional[bool] = None
 
-class CrearLote(SQLModel):
 
+class CrearLote(BaseModel):
     usuario_id: Optional[int] = None
     lote: Optional[int] = None
     descripcion: Optional[str] = None
     cantidad: Optional[int] = None
     precio: Optional[int] = None
-    fecha: Optional[datetime] = None
+    fecha: Optional[str] = None  # Cambiar a str, ya que lo recibes como string desde el frontend
+
+    class Config:
+        # Esto es para definir el formato de ejemplo en la documentación de Swagger
+        schema_extra = {
+            "example": {
+                "usuario_id": 1,
+                "lote": 123,
+                "descripcion": "Lote de prueba",
+                "cantidad": 10,
+                "precio": 200,
+                "fecha": "24/03/2025"  # Ejemplo de formato de fecha
+            }
+        }
+
 
 
 class ConsultaUsuario(SQLModel):

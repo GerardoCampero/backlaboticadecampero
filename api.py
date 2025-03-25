@@ -146,15 +146,14 @@ def buscar_lotes(
     usuario_id: Optional[int] = Query(None),  # ID de usuario es opcional
     session: Session = Depends(get_session)
 ):
-    # Convertir la fecha de "dd/mm/yyyy" a "yyyy-mm-dd"
+    # Convertir la fecha de "dd/mm/yyyy" a un objeto datetime.date
     try:
-        fecha_obj = datetime.strptime(fecha, "%d/%m/%Y")
-        fecha_str = fecha_obj.strftime("%Y-%m-%d")  # Convertimos la fecha al formato "yyyy-mm-dd"
+        fecha_obj = datetime.strptime(fecha, "%d/%m/%Y").date()  # Convertir a objeto de tipo date
     except ValueError:
         raise HTTPException(status_code=400, detail="El formato de la fecha es incorrecto. Use 'dd/mm/yyyy'.")
 
     # Construimos la consulta base
-    query = select(Lotes).where(func.date(Lotes.fecha) == fecha_str)  # Usamos func.date para comparar solo la fecha
+    query = select(Lotes).where(func.date(Lotes.fecha) == fecha_obj)  # Usamos func.date para comparar solo la fecha
 
     # Si el usuario_id es proporcionado, agregamos la condición del usuario
     if usuario_id is not None:
@@ -167,6 +166,7 @@ def buscar_lotes(
         raise HTTPException(status_code=404, detail="No se encontraron lotes para la fecha proporcionada.")
 
     return lotes
+
 
 
 
@@ -226,29 +226,40 @@ def editar_lote(id: int, editarLote: CrearLote, session: Session=Depends(get_ses
 
     if not lote:
         raise HTTPException(status_code=404, detail='Lote no encontrado')
-    
+
     # Guardar los valores originales de cantidad y precio
     cantidad_original = lote.cantidad
     precio_original = lote.precio
 
-    # Actualizar los campos del lote
+    # Convertir la fecha de string a datetime si se proporciona
+    if editarLote.fecha:
+        try:
+            # Convertimos la fecha en formato dd/mm/yyyy a datetime
+            fecha_obj = datetime.strptime(editarLote.fecha, "%d/%m/%Y")
+            lote.fecha = fecha_obj  # Asignamos la fecha convertida al objeto lote como datetime
+        except ValueError:
+            raise HTTPException(status_code=400, detail="El formato de la fecha es incorrecto. Use 'dd/mm/yyyy'.")
+
+    # Actualizar los demás campos del lote
     for atributo, valor in editarLote.dict().items():
-        if valor is None:
-            valor = getattr(Lotes, atributo)
-        setattr(lote, atributo, valor)
-    
+        if valor is not None and atributo != 'fecha':  # Evitar modificar el campo fecha nuevamente
+            setattr(lote, atributo, valor)
+
     # Si se actualiza cantidad o precio, recalcular el total
     if editarLote.cantidad is not None or editarLote.precio is not None:
         nueva_cantidad = editarLote.cantidad if editarLote.cantidad is not None else cantidad_original
         nuevo_precio = editarLote.precio if editarLote.precio is not None else precio_original
-        
+
         # Calcular el nuevo total
         lote.total = nueva_cantidad * nuevo_precio
 
+    # Guardar cambios en la base de datos
     session.add(lote)
     session.commit()
     session.refresh(lote)
     return lote
+
+
 
 
 @crud.delete('/eliminar_usuario/{id}')
