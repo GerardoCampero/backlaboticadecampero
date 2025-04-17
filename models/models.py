@@ -2,6 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel
+from zoneinfo import ZoneInfo
 
 class Usuario(SQLModel, table=True):
     
@@ -25,8 +26,8 @@ class Lotes(SQLModel, table=True):
     descripcion: Optional[str] = None
     cantidad: Optional[int] = None
     precio: Optional[int] = None
-    total: Optional[int] =  None
-    fecha: Optional[datetime] = Field(default_factory=datetime.now) 
+    total: Optional[int] = None
+    fecha: Optional[datetime] = Field(default_factory=lambda: datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")))
 
 
 class CrearUsuario(SQLModel):
