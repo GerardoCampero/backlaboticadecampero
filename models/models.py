@@ -33,12 +33,17 @@ class Lotes(SQLModel, table=True):
     @classmethod
     def convertir_fecha(cls, fecha: datetime) -> datetime:
         """Convierte la fecha a la zona horaria de Buenos Aires"""
+        if isinstance(fecha, str):
+            try:
+                fecha = datetime.fromisoformat(fecha)
+            except ValueError:
+                raise ValueError("La fecha enviada no tiene un formato válido")
+    
         if fecha.tzinfo is None:
-            # Si la fecha no tiene zona horaria, asignamos la de Buenos Aires
             fecha = fecha.replace(tzinfo=ZoneInfo("America/Argentina/Buenos_Aires"))
         else:
-            # Si la fecha ya tiene zona horaria, la convertimos a Buenos Aires
             fecha = fecha.astimezone(ZoneInfo("America/Argentina/Buenos_Aires"))
+        
         return fecha
 
 
