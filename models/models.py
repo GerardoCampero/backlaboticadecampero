@@ -29,6 +29,18 @@ class Lotes(SQLModel, table=True):
     total: Optional[int] = None
     fecha: Optional[datetime] = Field(default_factory=lambda: datetime.now(ZoneInfo("America/Argentina/Buenos_Aires")))
 
+    # Método para recibir y ajustar la fecha correctamente
+    @classmethod
+    def convertir_fecha(cls, fecha: datetime) -> datetime:
+        """Convierte la fecha a la zona horaria de Buenos Aires"""
+        if fecha.tzinfo is None:
+            # Si la fecha no tiene zona horaria, asignamos la de Buenos Aires
+            fecha = fecha.replace(tzinfo=ZoneInfo("America/Argentina/Buenos_Aires"))
+        else:
+            # Si la fecha ya tiene zona horaria, la convertimos a Buenos Aires
+            fecha = fecha.astimezone(ZoneInfo("America/Argentina/Buenos_Aires"))
+        return fecha
+
 
 class CrearUsuario(SQLModel):
 

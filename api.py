@@ -113,7 +113,8 @@ def crear_lote(lote: CrearLote, session: Session = Depends(get_session)):
         descripcion=lote.descripcion,
         cantidad=lote.cantidad,
         precio=lote.precio,
-        total=lote.precio * lote.cantidad
+        total=lote.precio * lote.cantidad,
+        fecha= Lotes.convertir_fecha(lote.fecha)
     )
 
     session.add(nuevoLote)
