@@ -149,16 +149,19 @@ def buscar_lotes(
 ):
     # Convertir la fecha de "dd/mm/yyyy" a un objeto datetime.date
     try:
-        fecha_obj = datetime.strptime(fecha, "%d/%m/%Y").date()  # Convertir a objeto de tipo date
+        fecha_obj = datetime.strptime(fecha, "%d/%m/%Y").date()
     except ValueError:
         raise HTTPException(status_code=400, detail="El formato de la fecha es incorrecto. Use 'dd/mm/yyyy'.")
 
     # Construimos la consulta base
-    query = select(Lotes).where(func.date(Lotes.fecha) == fecha_obj)  # Usamos func.date para comparar solo la fecha
+    query = select(Lotes).where(func.date(Lotes.fecha) == fecha_obj)
 
     # Si el usuario_id es proporcionado, agregamos la condición del usuario
     if usuario_id is not None:
         query = query.where(Lotes.usuario_id == usuario_id)
+
+    # Ordenamos por ID ascendente
+    query = query.order_by(Lotes.id)
 
     # Ejecutamos la consulta
     lotes = session.exec(query).all()
@@ -167,6 +170,7 @@ def buscar_lotes(
         raise HTTPException(status_code=404, detail="No se encontraron lotes para la fecha proporcionada.")
 
     return lotes
+
 
 
 

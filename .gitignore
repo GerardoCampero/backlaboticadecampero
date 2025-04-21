@@ -1,0 +1,30 @@
+# Ignorar entorno virtual
+venv/
+.env
+.env.*
+
+# Archivos de bases de datos
+*.db
+*.sqlite3
+la_botica_db.db
+
+# Archivos de caché y Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de pruebas
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Editor config files
+.vscode/
+.idea/
